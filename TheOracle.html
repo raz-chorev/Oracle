@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<title>The Oracle</title>
+
+<!-- iOS PWA configuration -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Oracle" />
+<meta name="theme-color" content="#000000" />
+<meta name="format-detection" content="telephone=no" />
+
+<!-- Inline SVG icon for Add to Home Screen -->
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23ff6b35'/><stop offset='1' stop-color='%23c9302c'/></linearGradient></defs><rect width='180' height='180' rx='40' fill='%23000'/><circle cx='90' cy='90' r='52' fill='none' stroke='url(%23g)' stroke-width='4'/><circle cx='90' cy='90' r='8' fill='url(%23g)'/><path d='M90 38 L90 52 M90 128 L90 142 M38 90 L52 90 M128 90 L142 90' stroke='url(%23g)' stroke-width='3' stroke-linecap='round'/></svg>" />
+
+<style>
+:root {
+  --bg: #000;
+  --surface-1: #1c1c1e;
+  --surface-2: #2c2c2e;
+  --surface-3: #3a3a3c;
+  --separator: #38383a;
+  --label: #ffffff;
+  --label-2: rgba(235, 235, 245, 0.6);
+  --label-3: rgba(235, 235, 245, 0.3);
+  --accent: #ff6b35;
+  --accent-dim: #c9302c;
+  --danger: #ff453a;
+  --success: #30d158;
+  --warn: #ffd60a;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --tabbar-h: 62px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--label);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: contain;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+
+.screen {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(var(--safe-top) + 12px) 0 calc(var(--tabbar-h) + var(--safe-bottom) + 12px) 0;
+}
+
+.screen.active { display: block; }
+
+.container { padding: 0 20px; }
+
+.header {
+  padding: 8px 20px 16px;
+}
+.header h1 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+.header p {
+  margin: 4px 0 0;
+  color: var(--label-2);
+  font-size: 14px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--label-2);
+  letter-spacing: 0.3px;
+  padding: 20px 20px 8px;
+  margin: 0;
+}
+
+.card {
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin: 0 0 12px;
+}
+
+.card h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--label-2);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.card .body { font-size: 17px; line-height: 1.45; white-space: pre-wrap; }
+
+.brief {
+  background: linear-gradient(160deg, rgba(255,107,53,0.08) 0%, rgba(0,0,0,0) 60%), var(--surface-1);
+  border: 1px solid rgba(255,107,53,0.15);
+}
+
+.brief-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+.brief-header .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+.brief-header .title { font-weight: 600; font-size: 16px; letter-spacing: 0.2px; }
+.brief-header .date { margin-left: auto; color: var(--label-2); font-size: 13px; }
+
+.brief-item {
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--separator);
+}
+.brief-item:last-child { border-bottom: none; }
+.brief-item .label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.4px;
+  margin: 0 0 4px;
+}
+.brief-item .value { font-size: 16px; line-height: 1.4; }
+
+.brief-footer {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--separator);
+  text-align: center;
+  font-style: italic;
+  color: var(--label-2);
+  font-size: 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: none;
+  background: var(--surface-2);
+  color: var(--label);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.08s ease, opacity 0.12s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.btn:active { transform: scale(0.97); opacity: 0.85; }
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.btn-primary:active { background: var(--accent-dim); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+}
+
+.btn-danger { background: transparent; color: var(--danger); }
+
+.btn-block { width: 100%; }
+
+.btn-row { display: flex; gap: 10px; }
+.btn-row .btn { flex: 1; }
+
+.tabbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: calc(var(--tabbar-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 0.5px solid var(--separator);
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  z-index: 100;
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--label-3);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 0;
+}
+.tab.active { color: var(--accent); }
+.tab svg { width: 24px; height: 24px; }
+
+.voice-strip {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.voice-strip::-webkit-scrollbar { display: none; }
+.voice-chip {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--label);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.voice-chip.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.mode-toggle {
+  display: flex;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 3px;
+  margin: 0 20px 12px;
+}
+.mode-toggle button {
+  flex: 1;
+  padding: 8px 0;
+  background: transparent;
+  color: var(--label-2);
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.mode-toggle button.active {
+  background: var(--surface-3);
+  color: var(--label);
+}
+
+.chat-log {
+  padding: 0 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.msg {
+  max-width: 88%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 16px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+.msg.user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+.msg.oracle {
+  align-self: flex-start;
+  background: var(--surface-1);
+  border-bottom-left-radius: 5px;
+}
+
+.composer {
+  position: sticky;
+  bottom: 0;
+  background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(12px);
+  padding: 10px 16px 14px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  border-top: 0.5px solid var(--separator);
+}
+.composer textarea {
+  flex: 1;
+  background: var(--surface-1);
+  border: none;
+  border-radius: 20px;
+  padding: 10px 14px;
+  color: var(--label);
+  font-family: inherit;
+  font-size: 16px;
+  resize: none;
+  max-height: 120px;
+  line-height: 1.35;
+}
+.composer textarea:focus { outline: none; }
+.composer button {
+  background: var(--accent);
+  border: none;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.composer button:disabled { background: var(--surface-3); color: var(--label-3); }
+
+.person-card {
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+}
+.person-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.person-info { flex: 1; min-width: 0; }
+.person-info .name { font-weight: 600; font-size: 17px; }
+.person-info .status { font-size: 13px; color: var(--label-2); margin-top: 2px; }
+.person-info .status.stale { color: var(--warn); }
+.person-info .status.urgent { color: var(--danger); }
+
+.form-group {
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin: 0 0 10px;
+}
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--label-2);
+  letter-spacing: 0.3px;
+  margin: 0 0 6px;
+}
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--label);
+  font-family: inherit;
+  font-size: 16px;
+  padding: 0;
+  resize: vertical;
+  line-height: 1.4;
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus { outline: none; }
+.form-group textarea { min-height: 60px; }
+
+.list-group {
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  margin: 0 0 16px;
+  overflow: hidden;
+}
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 0.5px solid var(--separator);
+  gap: 12px;
+  min-height: 52px;
+}
+.list-row:last-child { border-bottom: none; }
+.list-row .label { font-size: 16px; flex: 1; }
+.list-row .value { font-size: 15px; color: var(--label-2); text-align: right; }
+.list-row input, .list-row select {
+  background: transparent;
+  border: none;
+  color: var(--label);
+  font-family: inherit;
+  font-size: 16px;
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+}
+.list-row input:focus, .list-row select:focus { outline: none; }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-backdrop.active { display: flex; }
+.modal {
+  background: var(--surface-1);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 500px;
+  max-height: 86dvh;
+  overflow-y: auto;
+  padding: 20px 20px calc(20px + var(--safe-bottom));
+  animation: slideUp 0.28s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal h2 { margin: 4px 0 14px; font-size: 22px; font-weight: 700; }
+.modal-close {
+  width: 36px; height: 4px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  margin: 0 auto 14px;
+}
+
+.onboard-step {
+  padding: 40px 24px 20px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.onboard-step h1 {
+  font-size: 30px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  letter-spacing: -0.3px;
+}
+.onboard-step .sub {
+  font-size: 16px;
+  color: var(--label-2);
+  margin: 0 0 28px;
+  line-height: 1.45;
+}
+
+.muted { color: var(--label-2); }
+.center { text-align: center; }
+.mt-12 { margin-top: 12px; }
+.mt-20 { margin-top: 20px; }
+.hidden { display: none !important; }
+
+.tag {
+  display: inline-block;
+  padding: 3px 8px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--label-2);
+  margin-right: 6px;
+}
+.tag.accent { background: rgba(255,107,53,0.2); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <main id="screen-onboard" class="screen active">
+    <div id="onboard-content"></div>
+  </main>
+
+  <main id="screen-today" class="screen">
+    <div class="header">
+      <h1 id="today-greeting">Good morning</h1>
+      <p id="today-subtitle">Your wiser self is here.</p>
+    </div>
+    <div class="container">
+      <div id="brief-container"></div>
+      <div class="btn-row mt-12">
+        <button class="btn btn-primary" id="btn-regenerate">Regenerate brief</button>
+        <button class="btn" id="btn-new-move">Log a move</button>
+      </div>
+      <h2 class="section-title" style="padding-left: 0;">Recent</h2>
+      <div id="recent-activity"></div>
+    </div>
+  </main>
+
+  <main id="screen-ask" class="screen">
+    <div class="header">
+      <h1>Ask The Oracle</h1>
+      <p class="muted">Your wiser self, on call.</p>
+    </div>
+    <div class="voice-strip" id="voice-strip"></div>
+    <div class="mode-toggle">
+      <button id="mode-balanced" class="active">Balanced</button>
+      <button id="mode-brutal">Brutal</button>
+    </div>
+    <div class="chat-log" id="chat-log"></div>
+    <div class="composer">
+      <textarea id="chat-input" rows="1" placeholder="What's on your mind?"></textarea>
+      <button id="btn-send" disabled>&uarr;</button>
+    </div>
+  </main>
+
+  <main id="screen-people" class="screen">
+    <div class="header">
+      <h1>The People</h1>
+      <p class="muted">The ones who matter. Show up.</p>
+    </div>
+    <div class="container">
+      <div id="people-list"></div>
+      <button class="btn btn-block mt-12" id="btn-add-person">+ Add someone</button>
+    </div>
+  </main>
+
+  <main id="screen-reset" class="screen">
+    <div class="header">
+      <h1>Weekly Reset</h1>
+      <p class="muted">Trusted friend + sharp operator.</p>
+    </div>
+    <div class="container">
+      <div id="reset-form"></div>
+      <button class="btn btn-primary btn-block mt-12" id="btn-save-reset">Save this reset</button>
+      <h2 class="section-title" style="padding-left: 0;">History</h2>
+      <div id="reset-history"></div>
+    </div>
+  </main>
+
+  <main id="screen-settings" class="screen">
+    <div class="header">
+      <h1>Settings</h1>
+      <p class="muted">Tune the Oracle to you.</p>
+    </div>
+    <div class="container">
+      <div id="settings-content"></div>
+    </div>
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <div class="tab" data-screen="today">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+      <span>Today</span>
+    </div>
+    <div class="tab" data-screen="ask">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v10H8l-4 4V6z"/></svg>
+      <span>Ask</span>
+    </div>
+    <div class="tab" data-screen="people">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3 3-5 6.5-5s6.5 2 6.5 5"/><circle cx="17" cy="7" r="2.5"/><path d="M15 14c2.5 0 6 1.5 6 4"/></svg>
+      <span>People</span>
+    </div>
+    <div class="tab" data-screen="reset">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+      <span>Reset</span>
+    </div>
+    <div class="tab" data-screen="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1c0 .6.4 1.2 1 1.5a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      <span>Settings</span>
+    </div>
+  </nav>
+
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" id="modal-content">
+    <div class="modal-close"></div>
+  </div>
+</div>
+
+<script>
+/* The Oracle — personal life GM, family-first, brutal when needed.
+   Single-file PWA. Data lives only in this device's localStorage. */
+
+const K = {
+  init: 'oracle.init',
+  settings: 'oracle.settings',
+  people: 'oracle.people',
+  briefs: 'oracle.briefs',
+  chats: 'oracle.chats',
+  resets: 'oracle.resets',
+  moves: 'oracle.moves',
+  context: 'oracle.context'
+};
+
+const load = (k, fallback) => {
+  try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; }
+  catch(e) { return fallback; }
+};
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+const state = {
+  settings: load(K.settings, {
+    name: 'Raz',
+    defaultMode: 'balanced',
+    apiProvider: 'anthropic',
+    apiKey: '',
+    model: 'claude-sonnet-4-5'
+  }),
+  people: load(K.people, []),
+  briefs: load(K.briefs, []),
+  chats: load(K.chats, []),
+  resets: load(K.resets, []),
+  moves: load(K.moves, []),
+  context: load(K.context, {
+    building: '',
+    avoiding: '',
+    protecting: '',
+    values: 'honesty, clarity, warmth, courage, practical action'
+  }),
+  currentVoice: 'oracle',
+  mode: null
+};
+state.mode = state.settings.defaultMode;
+
+function persist() {
+  save(K.settings, state.settings);
+  save(K.people, state.people);
+  save(K.briefs, state.briefs);
+  save(K.chats, state.chats);
+  save(K.resets, state.resets);
+  save(K.moves, state.moves);
+  save(K.context, state.context);
+}
+
+const VOICES = {
+  oracle: {
+    name: 'Oracle',
+    sub: 'Wiser self. Family-first.',
+    system: (s) => `You are The Oracle — the wiser, future version of ${s.settings.name}.
+Role: General Manager of ${s.settings.name}'s life, family-first lens.
+You protect what matters: family, love, presence, integrity, freedom, time, health, meaningful business.
+You are warm, direct, emotionally intelligent, commercially sharp. British/Australian English.
+You do NOT flatter. You do NOT open with "Great question" or similar. You challenge, you don't validate.
+NEVER use "circling back" or generic corporate filler.
+Guiding principle: Time is not money. Time is love.
+When ${s.settings.name} is avoiding a relationship move, say verbatim: "${s.settings.name}, this is one of those moments where you're choosing comfort over connection." Then one simple action to take now.`
+  },
+  father: {
+    name: 'Father',
+    sub: 'Be there for your sons.',
+    system: (s) => `You are the Father voice of The Oracle, ${s.settings.name}'s wiser self.
+Your ONLY job: help ${s.settings.name} rebuild, protect, and grow relationships with his sons.
+There may be history, distance, complexity. Progress may be slow. Don't sugarcoat that.
+Guide him to: reach out without expectation. Stay consistent, not reactive. Remove pressure. Play the long game.
+If he withdraws because it's uncomfortable — name it. If he expects quick results — reset him. If he hesitates to show up — push him, gently but firmly.
+This is not about winning. It's about being there.
+Direct, warm, no fluff. British/Australian English. Never flattering.`
+  },
+  partner: {
+    name: 'Partner',
+    sub: 'Yulia. Presence. Joy.',
+    system: (s) => `You are the Partner voice of The Oracle — focused on ${s.settings.name}'s relationship with Yulia.
+Help him: create moments, not just manage logistics. Be present, not just available. Notice and appreciate, not assume. Lead emotionally, not just practically.
+If he gets too focused on business — interrupt. If he forgets to create joy — remind him. If he's physically present but mentally elsewhere — call it out.
+Push him to initiate, to plan something small and meaningful, to express appreciation in real time.
+Direct, warm, no preaching. British/Australian English.`
+  },
+  contrarian: {
+    name: 'Contrarian',
+    sub: "What you're not seeing.",
+    system: (s) => `You are the Contrarian voice of The Oracle — ${s.settings.name}'s challenger.
+Your job: expose assumptions, blind spots, emotional bias, rationalisations.
+Ask the hard questions he's not asking himself. Push back on the narrative ("I'm busy", "timing isn't right", "they should reach out first").
+Be respectful but unrelenting. Don't agree with him just because he's written it confidently.
+If what he's saying sounds like avoidance dressed as strategy, say so.
+Direct, sharp, British/Australian English. No fluff, no flattery.`
+  },
+  future: {
+    name: 'Future Raz',
+    sub: '20 years from now.',
+    system: (s) => `You are Future ${s.settings.name} — the version of him 20 years from now.
+You've lived what he's living. You know what actually mattered and what didn't.
+Speak to him from that vantage: legacy, health, the relationships that lasted, the regrets that still sting.
+Help him minimise regret. Help him invest in what compounds (people, presence, health) and stop spending energy on what won't matter.
+Be honest about what won't be there later if he keeps avoiding it now.
+Warm but unflinching. British/Australian English.`
+  }
+};
+
+const MODE_MOD = {
+  balanced: '',
+  brutal: `
+
+MODE: BRUTAL. The user has asked for the sharp version. Don't cushion feedback. Prioritise truth over comfort. Call out avoidance, rationalisation, and drift directly. Still respectful, never cruel — but the goal is movement, not validation.`
+};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.screen === id);
+  });
+  document.querySelector('.tabbar').style.display = (id === 'onboard') ? 'none' : '';
+  if (id === 'today') renderToday();
+  if (id === 'ask') renderAsk();
+  if (id === 'people') renderPeople();
+  if (id === 'reset') renderReset();
+  if (id === 'settings') renderSettings();
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => showScreen(t.dataset.screen));
+});
+
+const ONBOARD_STEPS = [
+  {
+    title: "Meet The Oracle.",
+    sub: "Your wiser self. Not here to flatter you — here to keep you honest, focused, and present with what actually matters.\n\nThis lives on your phone. Your data stays on your phone.",
+    field: null,
+    cta: "Begin"
+  },
+  {
+    title: "What should I call you?",
+    sub: "Your name. Nothing fancy.",
+    field: { key: 'name', target: 'settings', type: 'input', placeholder: 'Raz' },
+    cta: "Next"
+  },
+  {
+    title: "The people who matter.",
+    sub: "Seeded from what I already know: Yulia, Dean, Jason, Daniel. Edit, add, or remove anyone.",
+    field: { key: 'people_seed', target: 'custom', type: 'people', placeholder: '' },
+    cta: "Next"
+  },
+  {
+    title: "What are you building?",
+    sub: "One line. The thing that has your attention right now — business, personal, or both.",
+    field: { key: 'building', target: 'context', type: 'textarea', placeholder: 'e.g. scaling CWS, rebuilding a specific relationship, writing the book...' },
+    cta: "Next"
+  },
+  {
+    title: "What are you avoiding?",
+    sub: "Be honest. This is where The Oracle earns its keep.",
+    field: { key: 'avoiding', target: 'context', type: 'textarea', placeholder: 'a conversation, a decision, a person, a habit...' },
+    cta: "Next"
+  },
+  {
+    title: "What must not slip?",
+    sub: "The thing that, if it slips, everything else feels hollow.",
+    field: { key: 'protecting', target: 'context', type: 'textarea', placeholder: 'e.g. showing up for my kids, my health, Yulia and I...' },
+    cta: "Next"
+  },
+  {
+    title: "Two quick choices.",
+    sub: "Default mode. And (optional) an API key so The Oracle can talk. Without a key, you still get briefs and prompts to paste into Claude or ChatGPT.",
+    field: { key: 'final', target: 'custom', type: 'final', placeholder: '' },
+    cta: "Finish"
+  }
+];
+
+let onboardIndex = 0;
+
+function renderOnboardStep() {
+  const step = ONBOARD_STEPS[onboardIndex];
+  const el = document.getElementById('onboard-content');
+  let fieldHTML = '';
+
+  if (step.field && step.field.type === 'input') {
+    const val = state.settings[step.field.key] || '';
+    fieldHTML = '<div class="form-group"><label>' + step.field.key + '</label><input id="ob-field" value="' + escapeAttr(val) + '" placeholder="' + escapeAttr(step.field.placeholder) + '"/></div>';
+  } else if (step.field && step.field.type === 'textarea') {
+    const val = state.context[step.field.key] || '';
+    fieldHTML = '<div class="form-group"><textarea id="ob-field" rows="3" placeholder="' + escapeAttr(step.field.placeholder) + '">' + escapeHTML(val) + '</textarea></div>';
+  } else if (step.field && step.field.type === 'people') {
+    if (state.people.length === 0) {
+      ['Yulia', 'Dean', 'Jason', 'Daniel'].forEach(n => state.people.push(newPerson(n)));
+    }
+    fieldHTML = '<div id="ob-people">' + state.people.map((p, i) =>
+      '<div class="form-group" style="display:flex; align-items:center; gap:10px;">' +
+        '<div class="person-avatar" style="width:36px;height:36px;font-size:14px;">' + initials(p.name) + '</div>' +
+        '<input data-idx="' + i + '" class="ob-person-name" value="' + escapeAttr(p.name) + '" style="flex:1;"/>' +
+        '<button class="btn btn-ghost" data-remove="' + i + '" style="padding:6px 10px;">Remove</button>' +
+      '</div>'
+    ).join('') +
+      '<button class="btn btn-block" id="ob-add-person">+ Add someone</button>' +
+    '</div>';
+  } else if (step.field && step.field.type === 'final') {
+    fieldHTML =
+      '<div class="list-group">' +
+        '<div class="list-row"><span class="label">Default mode</span>' +
+          '<select id="ob-mode">' +
+            '<option value="balanced"' + (state.settings.defaultMode==='balanced'?' selected':'') + '>Balanced</option>' +
+            '<option value="brutal"' + (state.settings.defaultMode==='brutal'?' selected':'') + '>Brutal</option>' +
+          '</select></div>' +
+        '<div class="list-row"><span class="label">AI Provider</span>' +
+          '<select id="ob-provider">' +
+            '<option value="none">None (offline)</option>' +
+            '<option value="anthropic"' + (state.settings.apiProvider==='anthropic'?' selected':'') + '>Anthropic (Claude)</option>' +
+            '<option value="openai"' + (state.settings.apiProvider==='openai'?' selected':'') + '>OpenAI</option>' +
+          '</select></div>' +
+        '<div class="list-row"><span class="label">API Key</span>' +
+          '<input id="ob-key" type="password" placeholder="sk-..." value="' + escapeAttr(state.settings.apiKey) + '"/></div>' +
+      '</div>' +
+      '<p class="muted" style="font-size:13px; padding: 0 4px;">Your key is stored only on this device. Change it later in Settings, or leave blank and use offline prompts.</p>';
+  }
+
+  el.innerHTML =
+    '<div class="onboard-step">' +
+      '<h1>' + step.title + '</h1>' +
+      '<p class="sub">' + escapeHTML(step.sub).replace(/\n/g, '<br/>') + '</p>' +
+      fieldHTML +
+      '<button class="btn btn-primary btn-block mt-20" id="ob-next">' + step.cta + '</button>' +
+      (onboardIndex > 0 ? '<button class="btn btn-block mt-12" id="ob-back">Back</button>' : '') +
+    '</div>';
+
+  const nextBtn = document.getElementById('ob-next');
+  if (nextBtn) nextBtn.addEventListener('click', handleOnboardNext);
+  const backBtn = document.getElementById('ob-back');
+  if (backBtn) backBtn.addEventListener('click', () => { onboardIndex--; renderOnboardStep(); });
+
+  if (step.field && step.field.type === 'people') {
+    document.querySelectorAll('.ob-person-name').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const i = +e.target.dataset.idx;
+        state.people[i].name = e.target.value;
+      });
+    });
+    document.querySelectorAll('[data-remove]').forEach(b => {
+      b.addEventListener('click', (e) => {
+        const i = +e.target.dataset.remove;
+        state.people.splice(i, 1);
+        renderOnboardStep();
+      });
+    });
+    const addBtn = document.getElementById('ob-add-person');
+    if (addBtn) addBtn.addEventListener('click', () => {
+      const name = prompt('Name?');
+      if (name) { state.people.push(newPerson(name)); renderOnboardStep(); }
+    });
+  }
+}
+
+function handleOnboardNext() {
+  const step = ONBOARD_STEPS[onboardIndex];
+  const field = step.field;
+  if (field && field.type === 'input') {
+    const v = document.getElementById('ob-field').value.trim();
+    if (v) state.settings[field.key] = v;
+  } else if (field && field.type === 'textarea') {
+    const v = document.getElementById('ob-field').value.trim();
+    state.context[field.key] = v;
+  } else if (field && field.type === 'final') {
+    state.settings.defaultMode = document.getElementById('ob-mode').value;
+    state.mode = state.settings.defaultMode;
+    state.settings.apiProvider = document.getElementById('ob-provider').value;
+    state.settings.apiKey = document.getElementById('ob-key').value.trim();
+  }
+  persist();
+
+  if (onboardIndex === ONBOARD_STEPS.length - 1) {
+    localStorage.setItem(K.init, '1');
+    showScreen('today');
+    return;
+  }
+  onboardIndex++;
+  renderOnboardStep();
+}
+
+function newPerson(name) {
+  return {
+    id: Date.now() + Math.random(),
+    name,
+    lastContact: null,
+    cadenceDays: 7,
+    notes: '',
+    history: []
+  };
+}
+function initials(name) {
+  return name.trim().split(/\s+/).map(p => p[0]).join('').slice(0,2).toUpperCase();
+}
+function daysSince(ts) {
+  if (!ts) return null;
+  return Math.floor((Date.now() - ts) / 86400000);
+}
+function escapeHTML(s) {
+  s = s == null ? '' : String(s);
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(s) { return escapeHTML(s); }
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+function fmtDate(d) {
+  d = d || new Date();
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function renderToday() {
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting =
+    hour < 5  ? 'Still up' :
+    hour < 12 ? 'Good morning' :
+    hour < 17 ? 'Good afternoon' :
+                'Good evening';
+  document.getElementById('today-greeting').textContent = greeting + ', ' + state.settings.name + '.';
+  document.getElementById('today-subtitle').textContent = fmtDate(now);
+
+  const existing = state.briefs.find(b => b.date === todayKey());
+  let brief;
+  if (existing) {
+    brief = existing;
+  } else {
+    brief = generateLocalBrief();
+    state.briefs.unshift(brief);
+    state.briefs = state.briefs.slice(0, 30);
+    persist();
+  }
+  renderBrief(brief);
+  renderRecent();
+}
+
+function renderBrief(b) {
+  const el = document.getElementById('brief-container');
+  el.innerHTML =
+    '<div class="card brief">' +
+      '<div class="brief-header">' +
+        '<div class="dot"></div>' +
+        '<div class="title">Oracle Brief</div>' +
+        '<div class="date">' + fmtDate(new Date(b.date)) + '</div>' +
+      '</div>' +
+      b.items.map(i =>
+        '<div class="brief-item">' +
+          '<div class="label">' + escapeHTML(i.label) + '</div>' +
+          '<div class="value">' + escapeHTML(i.value).replace(/\n/g,'<br/>') + '</div>' +
+        '</div>'
+      ).join('') +
+      '<div class="brief-footer">' + escapeHTML(b.closer) + '</div>' +
+    '</div>';
+}
+
+function generateLocalBrief() {
+  const stale = stalestPerson();
+  const move = stale
+    ? pickMoveFor(stale)
+    : 'Send one message with no agenda to someone who matters.';
+  const focusPool = [
+    state.context.building || 'Protecting what matters, not chasing what shouts.',
+    'Presence over productivity today.',
+    "Do the thing you'd avoid if you weren't paying attention.",
+    'The important work is quiet. Sit with it.',
+    "Move fast on what you've been circling. Decide."
+  ];
+  const hardTruths = [
+    state.context.avoiding
+      ? "You know what you're avoiding: " + state.context.avoiding + ". Today's the day to touch it — even 15 minutes."
+      : "The thing you're avoiding is the thing you need to do first.",
+    'Busy is not the same as important. If today looks busy, audit it before lunch.',
+    "You've said " + (state.context.protecting || 'what matters') + " is what must not slip. Where in today's calendar does that show up?",
+    'If the answer to "am I showing up?" needs qualifying, the answer is no.',
+    'Winning the argument tonight will cost more than losing it.'
+  ];
+  const delegations = [
+    "One thing on your list today someone else could do 80% as well. Hand it off.",
+    "What are you carrying that was never yours?",
+    "If it can be a message instead of a call, send the message.",
+    "What's the smallest task you could cross off by asking for help in the next 10 minutes?"
+  ];
+  const closers = [
+    'Execute this, and today counts.',
+    'Time is love. Spend it like you mean it.',
+    'Be the version of yourself your sons will want to have known.',
+    'Less motion. More meaning.'
+  ];
+
+  return {
+    date: todayKey(),
+    createdAt: Date.now(),
+    items: [
+      { label: "Today's focus",                value: pick(focusPool) },
+      { label: 'Top priority',                 value: state.context.building || 'Finish the one thing only you can do.' },
+      { label: 'Pressure point',               value: pick(hardTruths) },
+      { label: 'One delegation',               value: pick(delegations) },
+      { label: 'One relationship move',        value: move },
+      { label: 'One thing to protect today',   value: state.context.protecting || "Your presence when you're home." }
+    ],
+    closer: pick(closers)
+  };
+}
+
+function stalestPerson() {
+  if (state.people.length === 0) return null;
+  const sorted = [...state.people].sort((a, b) => (a.lastContact || 0) - (b.lastContact || 0));
+  return sorted[0];
+}
+
+function pickMoveFor(p) {
+  const d = daysSince(p.lastContact);
+  const name = p.name;
+  const options = [];
+  if (d === null) {
+    options.push(
+      "You haven't logged anything for " + name + ". Send one message today — no agenda, no ask.",
+      name + ". One line, sent today. That's it."
+    );
+  } else if (d > p.cadenceDays * 2) {
+    options.push(
+      name + ": " + d + " days. This is one of those moments where you're choosing comfort over connection. Send something today. No performance.",
+      name + " has drifted. Voice note. 20 seconds. Nothing heavy. Just presence.",
+      name + ": " + d + " days is too long. One message. Today."
+    );
+  } else if (d > p.cadenceDays) {
+    options.push(
+      name + ": " + d + " days since you last reached out. A short \"thinking of you\" goes further than you think.",
+      name + ". Today. One line. Before you talk yourself out of it.",
+      "Voice note to " + name + " — light, not heavy. Send it now, it takes 30 seconds."
+    );
+  } else {
+    options.push(
+      name + ": recent, but don't drift. Something small and specific today — reference a thing only you two know.",
+      name + ": this is maintenance, not repair. Ask about something they mentioned last time."
+    );
+  }
+  return pick(options);
+}
+
+function renderRecent() {
+  const el = document.getElementById('recent-activity');
+  const recent = state.moves.slice(0, 5);
+  if (recent.length === 0) {
+    el.innerHTML = '<div class="card muted">No moves logged yet. Tap "Log a move" when you send that message, voice note, or call.</div>';
+    return;
+  }
+  el.innerHTML = recent.map(m =>
+    '<div class="card">' +
+      '<div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">' +
+        '<div>' +
+          '<div style="font-weight:600;">' + escapeHTML(m.person) + '</div>' +
+          '<div class="muted" style="font-size:13px;">' + new Date(m.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) + ' · ' + new Date(m.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + ' — ' + escapeHTML(m.type) + '</div>' +
+        '</div>' +
+      '</div>' +
+      (m.note ? '<div class="muted" style="font-size:14px; margin-top:6px;">"' + escapeHTML(m.note) + '"</div>' : '') +
+    '</div>'
+  ).join('');
+}
+
+document.getElementById('btn-regenerate').addEventListener('click', () => {
+  state.briefs = state.briefs.filter(b => b.date !== todayKey());
+  renderToday();
+});
+document.getElementById('btn-new-move').addEventListener('click', () => openMoveModal());
+
+function renderAsk() {
+  const strip = document.getElementById('voice-strip');
+  strip.innerHTML = Object.entries(VOICES).map(([key, v]) =>
+    '<div class="voice-chip' + (state.currentVoice === key ? ' active' : '') + '" data-voice="' + key + '">' +
+      '<div style="font-weight:600;">' + v.name + '</div>' +
+    '</div>'
+  ).join('');
+  strip.querySelectorAll('.voice-chip').forEach(c => {
+    c.addEventListener('click', () => {
+      state.currentVoice = c.dataset.voice;
+      renderAsk();
+    });
+  });
+  document.getElementById('mode-balanced').classList.toggle('active', state.mode === 'balanced');
+  document.getElementById('mode-brutal').classList.toggle('active', state.mode === 'brutal');
+
+  renderChatLog();
+}
+
+document.getElementById('mode-balanced').addEventListener('click', () => { state.mode = 'balanced'; renderAsk(); });
+document.getElementById('mode-brutal').addEventListener('click', () => { state.mode = 'brutal'; renderAsk(); });
+
+function renderChatLog() {
+  const el = document.getElementById('chat-log');
+  const msgs = state.chats.filter(m => m.voice === state.currentVoice).slice(-30);
+  if (msgs.length === 0) {
+    const v = VOICES[state.currentVoice];
+    el.innerHTML =
+      '<div style="text-align:center; padding: 40px 20px; color: var(--label-2);">' +
+        '<div style="font-size:18px; font-weight:600; color: var(--label); margin-bottom: 4px;">' + v.name + '</div>' +
+        '<div style="font-size:14px;">' + v.sub + '</div>' +
+        '<div style="font-size:13px; margin-top: 16px; line-height:1.5;">Ask anything. This voice is focused on ' + v.sub.toLowerCase() + '</div>' +
+      '</div>';
+    return;
+  }
+  el.innerHTML = msgs.map(m =>
+    '<div class="msg ' + (m.role === 'user' ? 'user' : 'oracle') + '">' + escapeHTML(m.text) + '</div>'
+  ).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+const chatInput = document.getElementById('chat-input');
+const sendBtn = document.getElementById('btn-send');
+chatInput.addEventListener('input', () => {
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+  sendBtn.disabled = chatInput.value.trim().length === 0;
+});
+sendBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+    e.preventDefault();
+    if (!sendBtn.disabled) sendMessage();
+  }
+});
+
+async function sendMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  const voice = state.currentVoice;
+  const mode = state.mode;
+  state.chats.push({ role: 'user', text, voice, mode, ts: Date.now() });
+  persist();
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  sendBtn.disabled = true;
+  renderChatLog();
+
+  if (state.settings.apiProvider === 'none' || !state.settings.apiKey) {
+    state.chats.push({
+      role: 'assistant',
+      voice, mode, ts: Date.now(),
+      text: "[No API key set — so I can't respond live. Tap Settings to add one, or copy this prompt into Claude / ChatGPT:]\n\n---\n" + buildSystemPrompt(voice, mode) + "\n\n---\n" + text
+    });
+    persist();
+    renderChatLog();
+    return;
+  }
+
+  const thinking = { role: 'assistant', voice, mode, ts: Date.now(), text: '…thinking' };
+  state.chats.push(thinking);
+  renderChatLog();
+
+  try {
+    const reply = await callLLM(voice, mode, text);
+    thinking.text = reply;
+    persist();
+    renderChatLog();
+  } catch (err) {
+    thinking.text = '[Oracle offline — ' + err.message + '. Your question is saved. Check Settings → API key, or try again.]';
+    persist();
+    renderChatLog();
+  }
+}
+
+function buildSystemPrompt(voiceKey, mode) {
+  const base = VOICES[voiceKey].system(state);
+  const ctx = state.context;
+  const peopleBlock = state.people.length ? '\n\nPeople who matter (with days since last contact):\n' +
+    state.people.map(p => '- ' + p.name + ': ' + (daysSince(p.lastContact) === null ? 'never logged' : daysSince(p.lastContact) + 'd') + (p.notes ? ' — ' + p.notes : '')).join('\n') : '';
+  const contextBlock = '\n\nContext about ' + state.settings.name + ':\n' +
+    '- Building: ' + (ctx.building || '—') + '\n' +
+    '- Avoiding: ' + (ctx.avoiding || '—') + '\n' +
+    '- Must not slip: ' + (ctx.protecting || '—') + '\n' +
+    '- Values: ' + (ctx.values || '—') + peopleBlock;
+  return base + contextBlock + MODE_MOD[mode];
+}
+
+async function callLLM(voiceKey, mode, userText) {
+  const system = buildSystemPrompt(voiceKey, mode);
+  const recent = state.chats.filter(m => m.voice === voiceKey).slice(-10, -1);
+  const messages = recent.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
+                         .concat({ role: 'user', content: userText });
+
+  if (state.settings.apiProvider === 'anthropic') {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': state.settings.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: state.settings.model || 'claude-sonnet-4-5',
+        max_tokens: 1024,
+        system,
+        messages
+      })
+    });
+    if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+    const data = await r.json();
+    return (data.content && data.content[0] && data.content[0].text) || '(empty response)';
+  }
+
+  if (state.settings.apiProvider === 'openai') {
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + state.settings.apiKey
+      },
+      body: JSON.stringify({
+        model: state.settings.model || 'gpt-4o-mini',
+        messages: [{ role: 'system', content: system }, ...messages]
+      })
+    });
+    if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+    const data = await r.json();
+    return (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '(empty response)';
+  }
+
+  throw new Error('Unknown provider');
+}
+
+function renderPeople() {
+  const el = document.getElementById('people-list');
+  if (state.people.length === 0) {
+    el.innerHTML = '<div class="card muted center">No one here yet. Add the people who matter.</div>';
+    return;
+  }
+  const sorted = [...state.people].sort((a, b) => (a.lastContact || 0) - (b.lastContact || 0));
+  el.innerHTML = sorted.map(p => {
+    const d = daysSince(p.lastContact);
+    const status =
+      d === null ? 'Not logged yet' :
+      d === 0 ? 'Today' :
+      d === 1 ? 'Yesterday' :
+      d + ' days ago';
+    const statusClass =
+      d === null ? 'urgent' :
+      d > p.cadenceDays * 2 ? 'urgent' :
+      d > p.cadenceDays ? 'stale' : '';
+    return (
+      '<div class="person-card" data-id="' + p.id + '">' +
+        '<div class="person-avatar">' + initials(p.name) + '</div>' +
+        '<div class="person-info">' +
+          '<div class="name">' + escapeHTML(p.name) + '</div>' +
+          '<div class="status ' + statusClass + '">' + status + (p.cadenceDays ? ' · cadence ' + p.cadenceDays + 'd' : '') + '</div>' +
+        '</div>' +
+        '<div style="color: var(--label-3); font-size: 20px;">›</div>' +
+      '</div>'
+    );
+  }).join('');
+  document.querySelectorAll('.person-card').forEach(c => {
+    c.addEventListener('click', () => openPersonModal(c.dataset.id));
+  });
+}
+
+document.getElementById('btn-add-person').addEventListener('click', () => {
+  const name = prompt('Who matters?');
+  if (name && name.trim()) {
+    state.people.push(newPerson(name.trim()));
+    persist();
+    renderPeople();
+  }
+});
+
+function openPersonModal(id) {
+  const p = state.people.find(x => String(x.id) === String(id));
+  if (!p) return;
+  const d = daysSince(p.lastContact);
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML =
+    '<div class="modal-close"></div>' +
+    '<h2>' + escapeHTML(p.name) + '</h2>' +
+    '<div class="card" style="margin-bottom: 12px;">' +
+      '<div class="muted" style="font-size:13px;">Last contact</div>' +
+      '<div style="font-size:18px; font-weight:600; margin-top:4px;">' +
+        (d === null ? 'Never logged' : d === 0 ? 'Today' : d === 1 ? 'Yesterday' : d + ' days ago') +
+      '</div>' +
+    '</div>' +
+    '<div class="form-group"><label>Cadence (days)</label>' +
+      '<input id="p-cadence" type="number" min="1" max="365" value="' + p.cadenceDays + '"/></div>' +
+    '<div class="form-group"><label>Notes — what The Oracle should remember about them</label>' +
+      '<textarea id="p-notes" rows="8" placeholder="Background, what matters to them, current situation, follow-up tasks you owe them…">' + escapeHTML(p.notes) + '</textarea></div>' +
+    '<button class="btn btn-primary btn-block" id="p-log">Log a move for ' + escapeHTML(p.name) + '</button>' +
+    '<button class="btn btn-block mt-12" id="p-suggest">Suggest a move</button>' +
+    '<button class="btn btn-block mt-12" id="p-save">Save</button>' +
+    '<button class="btn btn-block mt-12" id="p-delete" style="color: var(--danger);">Remove</button>' +
+    '<div id="p-suggestion" class="mt-12"></div>';
+  showModal();
+  document.getElementById('p-save').addEventListener('click', () => {
+    p.cadenceDays = Math.max(1, +document.getElementById('p-cadence').value || 7);
+    p.notes = document.getElementById('p-notes').value.trim();
+    persist();
+    flash('Saved ' + p.name + '.');
+    hideModal();
+    renderPeople();
+  });
+  document.getElementById('p-log').addEventListener('click', () => {
+    p.cadenceDays = Math.max(1, +document.getElementById('p-cadence').value || 7);
+    p.notes = document.getElementById('p-notes').value.trim();
+    persist();
+    hideModal();
+    openMoveModal(p.id);
+  });
+  document.getElementById('p-suggest').addEventListener('click', () => {
+    document.getElementById('p-suggestion').innerHTML =
+      '<div class="card">' +
+        '<div style="font-size:11px; color: var(--accent); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;">Move</div>' +
+        '<div style="margin-top:6px;">' + escapeHTML(pickMoveFor(p)) + '</div>' +
+      '</div>';
+  });
+  document.getElementById('p-delete').addEventListener('click', () => {
+    if (confirm('Remove ' + p.name + '?')) {
+      state.people = state.people.filter(x => x.id !== p.id);
+      persist();
+      hideModal();
+      renderPeople();
+    }
+  });
+}
+
+function openMoveModal(preselectId) {
+  if (state.people.length === 0) { alert('Add someone in the People tab first.'); return; }
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML =
+    '<div class="modal-close"></div>' +
+    '<h2>Log a move</h2>' +
+    '<div class="form-group"><label>Who</label>' +
+      '<select id="m-person">' +
+        state.people.map(p => '<option value="' + p.id + '"' + (String(preselectId)===String(p.id)?' selected':'') + '>' + escapeHTML(p.name) + '</option>').join('') +
+      '</select></div>' +
+    '<div class="form-group"><label>What</label>' +
+      '<select id="m-type">' +
+        '<option>Message</option>' +
+        '<option>Voice note</option>' +
+        '<option>Call</option>' +
+        '<option>In person</option>' +
+        '<option>Gift / gesture</option>' +
+        '<option>Listened properly</option>' +
+      '</select></div>' +
+    '<div class="form-group"><label>Note (optional)</label>' +
+      '<textarea id="m-note" rows="2" placeholder="What you actually said / did"></textarea></div>' +
+    '<button class="btn btn-primary btn-block" id="m-save">Save</button>';
+  showModal();
+  document.getElementById('m-save').addEventListener('click', () => {
+    const id = document.getElementById('m-person').value;
+    const type = document.getElementById('m-type').value;
+    const note = document.getElementById('m-note').value.trim();
+    const p = state.people.find(x => String(x.id) === String(id));
+    if (!p) return;
+    const ts = Date.now();
+    p.lastContact = ts;
+    p.history = p.history || [];
+    p.history.unshift({ ts, type, note });
+    state.moves.unshift({ person: p.name, personId: p.id, type, note, ts });
+    state.moves = state.moves.slice(0, 500);
+    persist();
+    flash('Move logged with ' + p.name + '.');
+    hideModal();
+    renderPeople();
+    if (document.getElementById('screen-today').classList.contains('active')) renderToday();
+  });
+}
+
+const RESET_FIELDS = [
+  { key: 'wins',        label: 'Wins from the past week' },
+  { key: 'lessons',     label: 'Lessons or friction points' },
+  { key: 'businessPri', label: 'Business priorities for the coming week' },
+  { key: 'familyPri',   label: 'Family / personal priorities' },
+  { key: 'stop',        label: 'One thing to stop doing' },
+  { key: 'simplify',    label: 'One thing to simplify' },
+  { key: 'joy',         label: 'One joy / adventure idea' },
+  { key: 'message',     label: 'One message I should send' },
+  { key: 'repair',      label: 'One repair action' }
+];
+
+function renderReset() {
+  let draft = state.resets.find(r => r.week === weekKey());
+  if (!draft) { draft = { week: weekKey(), fields: {} }; state.resets.unshift(draft); }
+  const el = document.getElementById('reset-form');
+  el.innerHTML = RESET_FIELDS.map(f =>
+    '<div class="form-group"><label>' + f.label + '</label>' +
+      '<textarea rows="2" data-field="' + f.key + '" placeholder="…">' + escapeHTML(draft.fields[f.key] || '') + '</textarea></div>'
+  ).join('');
+  el.querySelectorAll('textarea').forEach(t => {
+    t.addEventListener('input', (e) => {
+      draft.fields[e.target.dataset.field] = e.target.value;
+      persist();
+    });
+  });
+  const hist = document.getElementById('reset-history');
+  const older = state.resets.filter(r => r.week !== weekKey());
+  hist.innerHTML = older.length === 0
+    ? '<div class="card muted">No past resets yet.</div>'
+    : older.slice(0, 8).map(r =>
+        '<div class="card">' +
+          '<div style="font-weight:600; margin-bottom:6px;">Week of ' + r.week + '</div>' +
+          Object.entries(r.fields).filter(entry => entry[1]).slice(0,3).map(entry => {
+            const f = RESET_FIELDS.find(x => x.key === entry[0]);
+            return '<div class="muted" style="font-size:14px; margin-top:4px;"><span class="tag accent">' + escapeHTML((f && f.label) || entry[0]) + '</span>' + escapeHTML(entry[1]) + '</div>';
+          }).join('') +
+        '</div>'
+      ).join('');
+}
+function weekKey() {
+  const d = new Date();
+  d.setDate(d.getDate() - d.getDay());
+  return d.toISOString().slice(0,10);
+}
+document.getElementById('btn-save-reset').addEventListener('click', () => {
+  persist();
+  flash('Saved.');
+  renderReset();
+});
+
+function renderSettings() {
+  const el = document.getElementById('settings-content');
+  el.innerHTML =
+    '<h2 class="section-title" style="padding-left: 0; padding-top: 0;">You</h2>' +
+    '<div class="list-group">' +
+      '<div class="list-row"><span class="label">Name</span><input id="s-name" value="' + escapeAttr(state.settings.name) + '"/></div>' +
+    '</div>' +
+
+    '<h2 class="section-title" style="padding-left: 0;">Oracle</h2>' +
+    '<div class="list-group">' +
+      '<div class="list-row"><span class="label">Default mode</span>' +
+        '<select id="s-mode">' +
+          '<option value="balanced"' + (state.settings.defaultMode==='balanced'?' selected':'') + '>Balanced</option>' +
+          '<option value="brutal"' + (state.settings.defaultMode==='brutal'?' selected':'') + '>Brutal</option>' +
+        '</select></div>' +
+    '</div>' +
+
+    '<h2 class="section-title" style="padding-left: 0;">Context</h2>' +
+    '<div class="form-group"><label>What you\'re building</label><textarea id="s-building" rows="2">' + escapeHTML(state.context.building) + '</textarea></div>' +
+    '<div class="form-group"><label>What you\'re avoiding</label><textarea id="s-avoiding" rows="2">' + escapeHTML(state.context.avoiding) + '</textarea></div>' +
+    '<div class="form-group"><label>What must not slip</label><textarea id="s-protecting" rows="2">' + escapeHTML(state.context.protecting) + '</textarea></div>' +
+    '<div class="form-group"><label>Values</label><textarea id="s-values" rows="2">' + escapeHTML(state.context.values) + '</textarea></div>' +
+
+    '<h2 class="section-title" style="padding-left: 0;">AI</h2>' +
+    '<div class="list-group">' +
+      '<div class="list-row"><span class="label">Provider</span>' +
+        '<select id="s-provider">' +
+          '<option value="none"' + (state.settings.apiProvider==='none'?' selected':'') + '>None (offline)</option>' +
+          '<option value="anthropic"' + (state.settings.apiProvider==='anthropic'?' selected':'') + '>Anthropic (Claude)</option>' +
+          '<option value="openai"' + (state.settings.apiProvider==='openai'?' selected':'') + '>OpenAI</option>' +
+        '</select></div>' +
+      '<div class="list-row"><span class="label">API key</span><input id="s-key" type="password" placeholder="sk-…" value="' + escapeAttr(state.settings.apiKey) + '"/></div>' +
+      '<div class="list-row"><span class="label">Model</span><input id="s-model" placeholder="claude-sonnet-4-5" value="' + escapeAttr(state.settings.model || '') + '"/></div>' +
+    '</div>' +
+    '<p class="muted" style="font-size:13px; padding: 0 4px 16px;">Your key stays on this device. Anthropic and OpenAI both support direct browser calls.</p>' +
+
+    '<button class="btn btn-primary btn-block" id="s-save">Save</button>' +
+    '<button class="btn btn-block mt-12" id="s-export">Export data</button>' +
+    '<button class="btn btn-block mt-12" id="s-import">Import data</button>' +
+    '<input type="file" id="s-import-file" accept="application/json,.json" style="display:none;"/>' +
+    '<p class="muted" style="font-size:13px; padding: 8px 4px 16px;">Export saves a JSON file with every conversation, person, brief and reset. Import restores it on another device (replaces current data).</p>' +
+    '<button class="btn btn-block mt-12" id="s-reset-ob" style="color: var(--danger);">Reset onboarding</button>' +
+    '<button class="btn btn-block mt-12" id="s-clear" style="color: var(--danger);">Clear all data</button>';
+
+  document.getElementById('s-save').addEventListener('click', () => {
+    state.settings.name = document.getElementById('s-name').value.trim() || state.settings.name;
+    state.settings.defaultMode = document.getElementById('s-mode').value;
+    state.settings.apiProvider = document.getElementById('s-provider').value;
+    state.settings.apiKey = document.getElementById('s-key').value.trim();
+    state.settings.model = document.getElementById('s-model').value.trim();
+    state.context.building = document.getElementById('s-building').value;
+    state.context.avoiding = document.getElementById('s-avoiding').value;
+    state.context.protecting = document.getElementById('s-protecting').value;
+    state.context.values = document.getElementById('s-values').value;
+    state.mode = state.settings.defaultMode;
+    persist();
+    flash('Saved.');
+  });
+  document.getElementById('s-export').addEventListener('click', exportData);
+  document.getElementById('s-import').addEventListener('click', () => {
+    document.getElementById('s-import-file').click();
+  });
+  document.getElementById('s-import-file').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!confirm('Import ' + file.name + '?\n\nThis REPLACES every conversation, person, brief and reset currently on this device.')) {
+      e.target.value = '';
+      return;
+    }
+    importData(file);
+  });
+  document.getElementById('s-reset-ob').addEventListener('click', () => {
+    if (confirm('Restart onboarding? Your data stays.')) {
+      localStorage.removeItem(K.init);
+      onboardIndex = 0;
+      showScreen('onboard');
+      renderOnboardStep();
+    }
+  });
+  document.getElementById('s-clear').addEventListener('click', () => {
+    if (confirm('This wipes everything on this device. Sure?')) {
+      Object.values(K).forEach(k => localStorage.removeItem(k));
+      location.reload();
+    }
+  });
+}
+
+function exportData() {
+  const data = { _oracleExport: 1, _exportedAt: new Date().toISOString() };
+  Object.entries(K).forEach(([key, storageKey]) => {
+    data[key] = load(storageKey, null);
+  });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'oracle-export-' + todayKey() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data || typeof data !== 'object') throw new Error('File is not valid JSON.');
+      let restored = 0;
+      Object.entries(K).forEach(([key, storageKey]) => {
+        if (data[key] !== undefined && data[key] !== null) {
+          localStorage.setItem(storageKey, typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]));
+          restored++;
+        }
+      });
+      if (restored === 0) throw new Error("Didn't find any Oracle data in this file.");
+      localStorage.setItem(K.init, '1');
+      flash('Imported. Reloading…');
+      setTimeout(() => location.reload(), 800);
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+  };
+  reader.onerror = () => alert('Could not read file.');
+  reader.readAsText(file);
+}
+
+function showModal() { document.getElementById('modal-backdrop').classList.add('active'); }
+function hideModal() { document.getElementById('modal-backdrop').classList.remove('active'); }
+document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-backdrop') hideModal();
+});
+
+let flashTimer;
+function flash(msg) {
+  let el = document.getElementById('flash');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'flash';
+    el.style.cssText = 'position:fixed; top: calc(var(--safe-top) + 16px); left: 50%; transform: translateX(-50%); background: var(--surface-2); padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 500; z-index: 300; box-shadow: 0 8px 24px rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.2s;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => el.style.opacity = '0', 1600);
+}
+
+(function boot() {
+  const initialized = localStorage.getItem(K.init);
+  if (initialized) {
+    showScreen('today');
+  } else {
+    document.querySelector('.tabbar').style.display = 'none';
+    renderOnboardStep();
+  }
+})();
+</script>
+
+</body>
+</html>
